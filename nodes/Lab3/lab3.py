@@ -11,7 +11,7 @@ from nav_msgs.msg import Odometry
 #actual Tu = 1.05
 class lab3():
 	def __init__(self):
-		self.max_column = 0
+	    self.max_column = 0
 	
 	def bang_bang(self):
 	    cmd_pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
@@ -88,15 +88,16 @@ class lab3():
 	def pid(self):
 	    cmd_pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
 	    twist=Twist()
-	    twist.linear.x=0.08
+	    twist.linear.x=0.1
 	    twist.angular.z=0.0
+            # Ziegler-Nichols Gains (based off ultimate gain and ultimate period)
 	    #kp = 0.00936
 	    #ki = 0.01783
 	    #kd = 0.0012285
 	    kp = 0.00936
 	    ki = 0.0182
 	    kd = 0.0011
-	    icap = 0.025/ ki
+	    icap = 0.01/ ki
 
 	    rate = 20.0
 	    r=rospy.Rate(rate)
@@ -104,7 +105,7 @@ class lab3():
 	    prev = 320.0 - self.max_column 
 	    integral = 0
 	    while(True):
-		#print(self.max_column)
+		print(self.max_column)
 		diff = 320.0 - self.max_column 
 		integral = integral + (diff / rate)
 		if (abs(ki*integral) >= icap):
@@ -116,23 +117,14 @@ class lab3():
 		prev = diff
 		correction = kp*diff + ki*integral + kd*derivative
 		twist.angular.z= correction 
-		if (abs(diff) < 50):
-		    twist.linear.x = 0.13
-		else:
-		    twist.linear.x = 0.08
 	    	cmd_pub.publish(twist)
-		#print("kp: ", kp*diff, "ki: ", ki*integral,"kd: ", kd*derivative)
+		print("kp: ", kp*diff, "ki: ", ki*integral,"kd: ", kd*derivative)
 		r.sleep() 
 	    pass
 
-	def callback(self, color_data):
-		#point=odom_data.pose.pose.position
-		#quart=odom_data.pose.pose.orientation
-		#theta=get_yaw_from_quarternion(quart)
-		#cur_pose = (point.x, point.y, theta)
-		#print(int(color_data.data))		
-		self.max_column = int(color_data.data)
-		return color_data.data
+	def callback(self, color_data):		
+	    self.max_column = int(color_data.data)
+	    return color_data.data
 
 
 def main():
